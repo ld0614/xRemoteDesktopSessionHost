@@ -14,33 +14,57 @@ function Get-TargetResource
     (
         [Parameter(Mandatory = $true)]
         [ValidateLength(1,15)]
-        [string] $CollectionName, #eg Tenant
+        [string] 
+        $CollectionName, #eg Tenant
+
         [Parameter(Mandatory = $true)]
-        [string] $DisplayName, #eg Calculator
+        [string] 
+        $DisplayName, #eg Calculator
+
         [Parameter(Mandatory = $true)]
-        [string] $FilePath, #eg C:\Windows\System32\calc.exe
+        [string] 
+        $FilePath, #eg C:\Windows\System32\calc.exe
+
         [Parameter(Mandatory = $true)]
-        [string] $Alias, #eg calc
+        [string] 
+        $Alias, #eg calc
+
         [Parameter()]
-        [string] $FileVirtualPath,
+        [string] 
+        $FileVirtualPath,
+
         [Parameter()]
-        [string] $FolderName,
+        [string] 
+        $FolderName,
+
         [Parameter()]
-        [string] $CommandLineSetting,
+        [string] 
+        $CommandLineSetting,
+
         [Parameter()]
-        [string] $RequiredCommandLine,
+        [string] 
+        $RequiredCommandLine,
+
         [Parameter()]
-        [uint32] $IconIndex,
+        [uint32] 
+        $IconIndex,
+
         [Parameter()]
-        [string] $IconPath,
+        [string] 
+        $IconPath,
+
         [Parameter()]
-        [string] $UserGroups,
+        [string] 
+        $UserGroups,
+
         [Parameter()]
-        [boolean] $ShowInWebAccess
+        [boolean] 
+        $ShowInWebAccess
     )
         Write-Verbose "Getting published RemoteApp program $DisplayName, if one exists."
-        $CollectionName = Get-RDSessionCollection | ForEach-Object {Get-RDSessionHost $_.CollectionName} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
-        $remoteApp = Get-RDRemoteApp -CollectionName $CollectionName -DisplayName $DisplayName -Alias $Alias
+        $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
+        $CollectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
+        $remoteApp = Get-RDRemoteApp -CollectionName $CollectionName -DisplayName $DisplayName -Alias $Alias -ConnectionBroker $ConnectionBroker
 
         @{
         "CollectionName" = $remoteApp.CollectionName;
@@ -70,40 +94,64 @@ function Set-TargetResource
     (
         [Parameter(Mandatory = $true)]
         [ValidateLength(1,15)]
-        [string] $CollectionName,
+        [string] 
+        $CollectionName,
+
         [Parameter(Mandatory = $true)]
-        [string] $DisplayName,
+        [string] 
+        $DisplayName,
+
         [Parameter(Mandatory = $true)]
-        [string] $FilePath,
+        [string] 
+        $FilePath,
+
         [Parameter(Mandatory = $true)]
-        [string] $Alias,
+        [string] 
+        $Alias,
+
         [Parameter()]
-        [string] $FileVirtualPath,
+        [string] 
+        $FileVirtualPath,
+
         [Parameter()]
-        [string] $FolderName,
+        [string] 
+        $FolderName,
+
         [Parameter()]
-        [string] $CommandLineSetting,
+        [string] 
+        $CommandLineSetting,
+
         [Parameter()]
-        [string] $RequiredCommandLine,
+        [string] 
+        $RequiredCommandLine,
+
         [Parameter()]
-        [uint32] $IconIndex,
+        [uint32] 
+        $IconIndex,
+
         [Parameter()]
-        [string] $IconPath,
+        [string] 
+        $IconPath,
+
         [Parameter()]
-        [string] $UserGroups,
+        [string] 
+        $UserGroups,
+
         [Parameter()]
-        [boolean] $ShowInWebAccess
+        [boolean] 
+        $ShowInWebAccess
     )
     Write-Verbose "Making updates to RemoteApp."
-    $CollectionName = Get-RDSessionCollection | ForEach-Object {Get-RDSessionHost $_.CollectionName} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
+    $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
+    $CollectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
     $PSBoundParameters.collectionName = $CollectionName
-    if (!$(Get-RDRemoteApp -Alias $Alias)) 
+    if (!$(Get-RDRemoteApp -Alias $Alias -ConnectionBroker $ConnectionBroker)) 
     {
-        New-RDRemoteApp @PSBoundParameters
+        New-RDRemoteApp @PSBoundParameters -ConnectionBroker $ConnectionBroker
     }
     else 
     {
-        Set-RDRemoteApp @PSBoundParameters
+        Set-RDRemoteApp @PSBoundParameters -ConnectionBroker $ConnectionBroker
     }
 }
 
@@ -119,32 +167,56 @@ function Test-TargetResource
     (
         [Parameter(Mandatory = $true)]
         [ValidateLength(1,15)]
-        [string] $CollectionName,
+        [string] 
+        $CollectionName,
+
         [Parameter(Mandatory = $true)]
-        [string] $DisplayName,
+        [string] 
+        $DisplayName,
+
         [Parameter(Mandatory = $true)]
-        [string] $FilePath,
+        [string] 
+        $FilePath,
+
         [Parameter(Mandatory = $true)]
-        [string] $Alias,
+        [string] 
+        $Alias,
+
         [Parameter()]
-        [string] $FileVirtualPath,
+        [string] 
+        $FileVirtualPath,
+
         [Parameter()]
-        [string] $FolderName,
+        [string] 
+        $FolderName,
+
         [Parameter()]
-        [string] $CommandLineSetting,
+        [string] 
+        $CommandLineSetting,
+
         [Parameter()]
-        [string] $RequiredCommandLine,
+        [string] 
+        $RequiredCommandLine,
+
         [Parameter()]
-        [uint32] $IconIndex,
+        [uint32] 
+        $IconIndex,
+
         [Parameter()]
-        [string] $IconPath,
+        [string] 
+        $IconPath,
+
         [Parameter()]
-        [string] $UserGroups,
+        [string] 
+        $UserGroups,
+
         [Parameter()]
-        [boolean] $ShowInWebAccess
+        [boolean] 
+        $ShowInWebAccess
     )
     Write-Verbose "Testing if RemoteApp is published."
-    $collectionName = Get-RDSessionCollection | ForEach-Object {Get-RDSessionHost $_.CollectionName} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
+    $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
+    $collectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
     $PSBoundParameters.Remove("Verbose") | out-null
     $PSBoundParameters.Remove("Debug") | out-null
     $PSBoundParameters.Remove("ConnectionBroker") | out-null
@@ -152,8 +224,7 @@ function Test-TargetResource
     
     $Get = Get-TargetResource -CollectionName $CollectionName -DisplayName $DisplayName -FilePath $FilePath -Alias $Alias
     $PSBoundParameters.keys | ForEach-Object {if ($PSBoundParameters[$_] -ne $Get[$_]) {$Check = $false} }
-    $Check
+    return $Check
 }
 
 Export-ModuleMember -Function *-TargetResource
-

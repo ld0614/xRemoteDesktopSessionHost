@@ -22,12 +22,3 @@ class MSFT_xRDSessionCollectionConfiguration : OMI_BaseResource
     [write, Description("Specifies whether to delete temporary folders from the RD Session Host server for a disconnected session. ")] boolean TemporaryFoldersDeletedOnExit;
     [write, Description("Specifies a domain group authorized to connect to the RD Session Host servers in a session collection. ")] string UserGroup;
 };
-
-
-
-
-
-
-
-
-
