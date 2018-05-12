@@ -88,7 +88,8 @@ Please check out common DSC Resources [contributing guidelines](https://github.c
 ## Versions
 
 ### Unreleased
-* Added additional resources, copied from the Azure RDS quickstart template. 
+
+* Added additional resources, copied from the Azure RDS quickstart template.
 * Added support for High Avalibility
 
 ### 1.4.0.0

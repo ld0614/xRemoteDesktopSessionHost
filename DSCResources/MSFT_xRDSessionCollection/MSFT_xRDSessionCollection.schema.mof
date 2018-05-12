@@ -4,5 +4,5 @@ class MSFT_xRDSessionCollection : OMI_BaseResource
     [write, Description("Name of the RD Connection Broker.")] string ConnectionBroker;
     [key, Description("Specifies a name for the session collection.")] string CollectionName;
     [write, Description("Specifies a description for the collection.")] string CollectionDescription;
-    [write, Description("Specifies RD Session Host servers to include in the session collection.")] string SessionHosts[];
+    [Required, Description("Specifies RD Session Host servers to include in the session collection.")] string SessionHosts[];
 };

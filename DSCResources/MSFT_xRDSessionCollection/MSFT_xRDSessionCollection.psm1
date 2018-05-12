@@ -140,7 +140,7 @@ function Test-TargetResource
         $CollectionName,
 
         [Parameter(Mandatory = $true)]
-        [string[]] 
+        [String[]]
         $SessionHosts,
 
         [Parameter()]
