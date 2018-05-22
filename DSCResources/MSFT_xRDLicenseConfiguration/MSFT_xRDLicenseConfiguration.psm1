@@ -1,6 +1,6 @@
 Import-Module -Name "$PSScriptRoot\..\..\xRemoteDesktopSessionHostCommon.psm1"
 if (!(Test-xRemoteDesktopSessionHostOsRequirement)) { Throw "The minimum OS requirement was not met."}
-Import-Module RemoteDesktop
+Import-RDModule
 
 #######################################################################
 # The Get-TargetResource cmdlet.
@@ -28,7 +28,7 @@ function Get-TargetResource
 
     $result = $null
     $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
-    write-verbose "Getting RD License server configuration from broker '$ConnectionBroker'..."    
+    Write-Verbose "Getting RD License server configuration from broker '$ConnectionBroker'..."    
     
     $config = Get-RDLicenseConfiguration -ConnectionBroker $ConnectionBroker -ErrorAction SilentlyContinue
 
@@ -43,12 +43,12 @@ function Get-TargetResource
             "LicenseMode"      = $config.Mode.ToString()  # Microsoft.RemoteDesktopServices.Management.LicensingMode  .ToString()
         }
 
-        write-verbose ">> RD License mode:     $($result.LicenseMode)"
-        write-verbose ">> RD License servers:  $($result.LicenseServers -join '; ')"
+        Write-Verbose ">> RD License mode:     $($result.LicenseMode)"
+        Write-Verbose ">> RD License servers:  $($result.LicenseServers -join '; ')"
     }
     else
     {
-        write-verbose "Failed to retrieve RD License configuration from broker '$ConnectionBroker'."
+        Write-Verbose "Failed to retrieve RD License configuration from broker '$ConnectionBroker'."
     }
 
     return $result
@@ -78,14 +78,14 @@ function Set-TargetResource
         $LicenseMode
     )
     
-    write-verbose "Starting RD License server configuration..."
+    Write-Verbose "Starting RD License server configuration..."
     $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
 
-    write-verbose ">> RD Connection Broker:  $($ConnectionBroker.ToLower())"
+    Write-Verbose ">> RD Connection Broker:  $($ConnectionBroker.ToLower())"
 
     if ($LicenseServers)
     {
-        write-verbose ">> RD License servers:    $($LicenseServers -join '; ')"
+        Write-Verbose ">> RD License servers:    $($LicenseServers -join '; ')"
 
         Write-Verbose "calling Set-RDLicenseConfiguration cmdlet..."
         Set-RDLicenseConfiguration -ConnectionBroker $ConnectionBroker -LicenseServer $LicenseServers -Mode $LicenseMode -Force
@@ -96,7 +96,7 @@ function Set-TargetResource
         Set-RDLicenseConfiguration -ConnectionBroker $ConnectionBroker -Mode $LicenseMode -Force
     }
 
-    write-verbose "Set-RDLicenseConfiguration done."
+    Write-Verbose "Set-RDLicenseConfiguration done."
 }
 
 
@@ -128,17 +128,17 @@ function Test-TargetResource
     
     if ($config)
     {
-        write-verbose "verifying RD Licensing mode..."
+        Write-Verbose "verifying RD Licensing mode..."
 
         $result = ($config.LicenseMode -eq $LicenseMode)
     }
     else
     {
-        write-verbose "Failed to retrieve RD License server configuration from broker '$ConnectionBroker'."
+        Write-Verbose "Failed to retrieve RD License server configuration from broker '$ConnectionBroker'."
         $result = $false
     }
 
-    write-verbose "Test-TargetResource returning:  $result"
+    Write-Verbose "Test-TargetResource returning:  $result"
     return $result
 }
 

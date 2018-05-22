@@ -1,7 +1,6 @@
 Import-Module -Name "$PSScriptRoot\..\..\xRemoteDesktopSessionHostCommon.psm1"
 if (!(Test-xRemoteDesktopSessionHostOsRequirement)) { Throw "The minimum OS requirement was not met."}
-Import-Module RemoteDesktop
-$localhost = [System.Net.Dns]::GetHostByName((hostname)).HostName
+Import-RDModule
 
 #######################################################################
 # The Get-TargetResource cmdlet.
@@ -90,8 +89,12 @@ function Get-TargetResource
         $UserGroup
     )
         Write-Verbose "Getting currently configured RDSH Collection properties"
+        $localhost = Get-Localhost
         $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
-        $collectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker } | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
+        $collectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | 
+            ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker } | 
+            Where-Object {$_.SessionHost -ieq $localhost} | 
+            ForEach-Object {$_.CollectionName}
 
         $collectionGeneral = Get-RDSessionCollectionConfiguration -CollectionName $CollectionName -ConnectionBroker $ConnectionBroker 
         $collectionClient = Get-RDSessionCollectionConfiguration -CollectionName $CollectionName -ConnectionBroker $ConnectionBroker -Client
@@ -209,8 +212,14 @@ function Set-TargetResource
         $UserGroup
     )
     Write-Verbose "Setting DSC collection properties"
+    $localhost = Get-Localhost
     $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
-    $discoveredCollectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker } | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
+
+    $discoveredCollectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker |
+        ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker } |
+        Where-Object {$_.SessionHost -ieq $localhost} |
+        ForEach-Object {$_.CollectionName}
+
     if ($collectionName -ne $discoveredCollectionName) {$PSBoundParameters.collectionName = $discoveredCollectionName}
     $PSBoundParameters.Remove("ConnectionBroker")
     Set-RDSessionCollectionConfiguration @PSBoundParameters -ConnectionBroker $ConnectionBroker 
@@ -305,8 +314,14 @@ function Test-TargetResource
     )
     
     Write-Verbose "Testing DSC collection properties"
+    $localhost = Get-Localhost
     $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
-    $collectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker  | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker } | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
+
+    $collectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker  | 
+        ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker } | 
+        Where-Object {$_.SessionHost -ieq $localhost} | 
+        ForEach-Object {$_.CollectionName}
+
     $PSBoundParameters.Remove("Verbose") | out-null
     $PSBoundParameters.Remove("Debug") | out-null
     $PSBoundParameters.Remove("ConnectionBroker") | out-null

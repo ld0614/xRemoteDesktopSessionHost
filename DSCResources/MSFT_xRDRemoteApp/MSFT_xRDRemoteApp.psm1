@@ -1,7 +1,6 @@
 Import-Module -Name "$PSScriptRoot\..\..\xRemoteDesktopSessionHostCommon.psm1"
 if (!(Test-xRemoteDesktopSessionHostOsRequirement)) { Throw "The minimum OS requirement was not met."}
-Import-Module RemoteDesktop
-$localhost = [System.Net.Dns]::GetHostByName((hostname)).HostName
+Import-RDModule
 
 #######################################################################
 # The Get-TargetResource cmdlet.
@@ -61,6 +60,7 @@ function Get-TargetResource
         [boolean] 
         $ShowInWebAccess
     )
+        $localhost = Get-Localhost
         Write-Verbose "Getting published RemoteApp program $DisplayName, if one exists."
         $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
         $CollectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
@@ -215,6 +215,7 @@ function Test-TargetResource
         $ShowInWebAccess
     )
     Write-Verbose "Testing if RemoteApp is published."
+    $Localhost = Get-Localhost
     $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
     $collectionName = Get-RDSessionCollection -ConnectionBroker $ConnectionBroker | ForEach-Object {Get-RDSessionHost $_.CollectionName -ConnectionBroker $ConnectionBroker} | Where-Object {$_.SessionHost -ieq $localhost} | ForEach-Object {$_.CollectionName}
     $PSBoundParameters.Remove("Verbose") | out-null

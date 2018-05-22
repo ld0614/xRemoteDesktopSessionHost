@@ -1,6 +1,6 @@
 Import-Module -Name "$PSScriptRoot\..\..\xRemoteDesktopSessionHostCommon.psm1"
 if (!(Test-xRemoteDesktopSessionHostOsRequirement)) { Throw "The minimum OS requirement was not met."}
-Import-Module RemoteDesktop
+Import-RDModule
 
 #######################################################################
 # The Get-TargetResource cmdlet.

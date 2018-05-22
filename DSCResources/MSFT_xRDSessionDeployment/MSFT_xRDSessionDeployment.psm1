@@ -24,7 +24,7 @@ function Get-TargetResource
     )
 
     #Must be manually loaded in every Function otherwise unexpected behavior occurs with missing commands
-    Import-Module RemoteDesktop
+    Import-RDModule
 
     $result = $null
 
@@ -99,7 +99,7 @@ function Set-TargetResource
     )
 
     #Must be manually loaded in every Function otherwise unexpected behavior occurs with missing commands
-    Import-Module RemoteDesktop
+    Import-RDModule
 
     $DeploymentPrarms = @{}
 

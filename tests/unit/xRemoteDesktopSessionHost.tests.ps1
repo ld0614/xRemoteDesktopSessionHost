@@ -44,58 +44,235 @@ try
         #region Function Test-xRemoteDesktopSessionHostOsRequirement
         Describe "Test-xRemoteDesktopSessionHostOsRequirement" {
             Context 'Windows 10' {
-                Mock Get-OsVersion -MockWith {return (new-object 'Version' 10,1,1,1)}
-                it 'Should return true' {
-                    Test-xRemoteDesktopSessionHostOsRequirement | should be $true
+                Mock -CommandName Get-OsVersion `
+                    -MockWith {return (new-object 'Version' 10,1,1,1)} `
+                    -Verifiable
+
+                It 'Should return true' {
+                    Test-xRemoteDesktopSessionHostOsRequirement | Should -Be $true
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
                 }
             }
+
             Context 'Windows 8.1' {
-                Mock Get-OsVersion -MockWith {return (new-object 'Version' 6,3,1,1)}
-                it 'Should return true' {
-                    Test-xRemoteDesktopSessionHostOsRequirement | should be $true
+                Mock -CommandName Get-OsVersion `
+                    -MockWith {return (new-object 'Version' 6,3,1,1)} `
+                    -Verifiable
+
+                It 'Should return true' {
+                    Test-xRemoteDesktopSessionHostOsRequirement | Should -Be $true
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
                 }
             }
+
             Context 'Windows 8' {
-                Mock Get-OsVersion -MockWith {return (new-object 'Version' 6,2,9200,0)}
-                it 'Should return true' {
-                    Test-xRemoteDesktopSessionHostOsRequirement | should be $true
+                Mock -CommandName Get-OsVersion `
+                    -MockWith {return (new-object 'Version' 6,2,9200,0)} `
+                    -Verifiable
+
+                It 'Should return true' {
+                    Test-xRemoteDesktopSessionHostOsRequirement | Should -Be $true
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
                 }
             }
+
             Context 'Windows 7' {
-                Mock Get-OsVersion -MockWith {return (new-object 'Version' 6,1,1,0)}
-                it 'Should return false' {
-                    Test-xRemoteDesktopSessionHostOsRequirement | should be $false
+                Mock -CommandName Get-OsVersion `
+                    -MockWith {return (new-object 'Version' 6,1,1,0)} `
+                    -Verifiable
+
+                It 'Should return false' {
+                    Test-xRemoteDesktopSessionHostOsRequirement | Should -Be $false
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
                 }
             }
         }
         #endregion
 
-
-        # TODO: Pester Tests for any Helper Cmdlets
-
-    }
-    Describe "Test-xRemoteDesktopSessionHostOsRequirement use in modules" {
-            Import-module "$moduleRoot\xRemoteDesktopSessionHost.psd1" -force
-            Context 'Loading resource modules on Windows 10' {
-                Mock Get-OsVersion -MockWith {return (new-object 'Version' 10,1,1,1)} -ModuleName xRemoteDesktopSessionHost
-                foreach($resourceModule in $global:resourceModules)
-                {
-                    # The resource does not check if the remote desktop module exists before it loads it 
-                    # so this always fails.  Pending this test for this issue
-                    # https://github.com/PowerShell/xRemoteDesktopSessionHost/issues/6
-                    it "$($resourceModule.Name) should not throw when imported" -Pending {
-                        try {
-                            $Error.Clear()
-                            import-module $resourceModule.FullName -force -ErrorAction stop -ErrorVariable ImportVariable
-                        }
-                        catch {
-                            Write-Verbose -Message 'in catch' -Verbose
-                            $_ | should be $null
-                        }
-                        $Error.Count | should be 0
-                    }
+        Describe "Import-RDModule" {
+            Context 'Import Module runs successfully' {
+                Mock -CommandName Get-Module `
+                    -MockWith {return @{ModuleType='Manifest';Version=[Version]::new(2,0,0,0);Name='RemoteDesktop';ExportedCommands='{Some-Command}'}} `
+                    -Verifiable
+                Mock -CommandName Import-Module `
+                    -MockWith {return $null} `
+                    -Verifiable
+                Mock -CommandName Get-Command `
+                    -MockWith {@{CommandType='Function';Name='Get-Server';Version=[Version]::new(2,0,0,0);Source='RemoteDesktop'}} `
+                    -Verifiable
+                It 'Import-RDModule Runs successfully' {
+                    {Import-RDModule} | Should -Not -Throw
                 }
-            }            
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+        }
+
+        Describe 'Get-ActiveConnectionBroker' {
+
+            Context 'No Connection Broker' {
+                Mock -CommandName Get-RDConnectionBrokerHighAvailability `
+                    -ModuleName RemoteDesktop `
+                    -MockWith {throw 'Invalid Connection Broker'} `
+                    -Verifiable
+                $script:ConnectionBroker = "SRV01.contoso.com"
+                
+                It 'Should Not Throw' {
+                    {Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Current Server' {
+                    Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker | Should -Be $script:ConnectionBroker
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+
+            Context 'Not HA Local Connection Broker' {
+                Mock -CommandName Get-RDConnectionBrokerHighAvailability `
+                    -ModuleName RemoteDesktop `    
+                    -MockWith {return $null} `
+                    -Verifiable
+                $script:ConnectionBroker = "SRV01.contoso.com"
+                
+                It 'Should Not Throw' {
+                    {Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Current Server' {
+                    Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker | Should -Be $script:ConnectionBroker
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+
+            Context 'Local HA Connection Broker' {
+                $script:ConnectionBroker = "SRV01.contoso.com"
+                $script:ActiveServer = $script:ConnectionBroker
+                Mock -CommandName Get-RDConnectionBrokerHighAvailability `
+                    -ModuleName RemoteDesktop `
+                    -MockWith {return @{ActiveManagementServer=$script:ActiveServer}} `
+                    -Verifiable
+                
+                It 'Should Not Throw' {
+                    {Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Current Server' {
+                    Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker | Should -Be $script:ActiveServer
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+
+            Context 'Remote HA Connection Broker' {
+                $script:ConnectionBroker = 'SRV01.contoso.com'
+                $script:ActiveServer = 'SRV02.contoso.com'
+                Mock -CommandName Get-RDConnectionBrokerHighAvailability `
+                    -ModuleName RemoteDesktop `
+                    -MockWith {return @{ActiveManagementServer=$script:ActiveServer}} `
+                    -Verifiable
+                
+                It 'Should Not Throw' {
+                    {Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Current Server' {
+                    Get-ActiveConnectionBroker -ConnectionBroker $script:ConnectionBroker | Should -Be $script:ActiveServer
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+        }
+
+        Describe 'Get-ConnectionBroker' {
+            $script:ConnectionBroker = 'SRV01.contoso.com'
+            Context 'No parameter' {
+                Mock -CommandName Get-LocalHost `
+                    -MockWith {return $script:ConnectionBroker} `
+                    -Verifiable
+                Mock -CommandName Get-ActiveConnectionBroker `
+                    -MockWith {return $script:ConnectionBroker} `
+                    -Verifiable
+                
+                It 'Should Not Throw' {
+                    {Get-ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Current Server' {
+                    Get-ConnectionBroker | Should -Be $script:ConnectionBroker
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+
+            Context 'Local ConnectionBroker' {
+                Mock -CommandName Get-LocalHost `
+                    -MockWith {return $script:ConnectionBroker} `
+                    -Verifiable
+                Mock -CommandName Get-ActiveConnectionBroker `
+                    -MockWith {return $script:ConnectionBroker} `
+                    -Verifiable
+                
+                It 'Should Not Throw' {
+                    {Get-ConnectionBroker -ConnectionBroker $script:ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Current Server' {
+                    Get-ConnectionBroker -ConnectionBroker $script:ConnectionBroker | Should -Be $script:ConnectionBroker
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+
+            Context 'Remote Connection Broker' {
+                $script:ActiveConnectionBroker = 'SRV02.contoso.com'
+                Mock -CommandName Get-LocalHost `
+                    -MockWith {return $script:ConnectionBroker} `
+                    -Verifiable
+                Mock -CommandName Get-ActiveConnectionBroker `
+                    -MockWith {return $script:ActiveConnectionBroker} `
+                    -Verifiable
+                
+                It 'Should Not Throw' {
+                    {Get-ConnectionBroker -ConnectionBroker $script:ConnectionBroker} | Should -Not -Throw
+                }
+
+                It 'Returns Remote Server' {
+                    Get-ConnectionBroker -ConnectionBroker $script:ConnectionBroker | Should -Be $script:ActiveConnectionBroker
+                }
+
+                It 'All Mocks should have run'{
+                    {Assert-VerifiableMock} | Should -Not -Throw
+                }
+            }
+        }
     }
     #endregion
 }

@@ -1,15 +1,25 @@
 function Test-xRemoteDesktopSessionHostOsRequirement
 {
-    return (Get-OsVersion) -ge (new-object 'Version' 6,2,9200,0)
+    [CmdletBinding()]
+    [OutputType([System.Boolean])]
+    Param
+    ()
+    return (Get-OsVersion) -ge [Version]::new(6,2,9200,0)
 }
 
 function Get-OsVersion
 {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    ()
     return [Environment]::OSVersion.Version 
 }
 
 Function Import-RDModule
 {
+    [CmdletBinding()]
+    [OutputType([Void])]
     $Module = Get-Module -ListAvailable RemoteDesktop
     if ($null -eq $Module)
     {
@@ -36,6 +46,8 @@ Function Import-RDModule
 
 function Get-ActiveConnectionBroker
 {
+    [CmdletBinding()]
+    [OutputType([String])]
     Param
     (
         [Parameter(Mandatory=$true)]
@@ -60,22 +72,39 @@ function Get-ActiveConnectionBroker
 
 Function Get-ConnectionBroker
 {
+    [CmdletBinding()]
+    [OutputType([String])]
     Param
     (
         [parameter()]
         [String]
         $ConnectionBroker
     )
-    $localhost = [System.Net.Dns]::GetHostByName((hostname)).HostName
-    if (-not $ConnectionBroker)  { $ConnectionBroker =  $localhost } #If not specified use the localhost as the connection Broker
+    $localhost = Get-Localhost
+    if (-not $ConnectionBroker)
+    {
+        #If not specified use the localhost as the connection Broker
+        $ConnectionBroker = $localhost
+    } 
 
     $ConnectionBroker = Get-ActiveConnectionBroker -ConnectionBroker $ConnectionBroker
 
     return $ConnectionBroker
 }
 
+Function Get-Localhost
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    ()
+
+    return [System.Net.Dns]::GetHostByName((hostname)).HostName
+}
+
 Export-ModuleMember -Function @(
     'Test-xRemoteDesktopSessionHostOsRequirement',
+    'Get-Localhost',
     'Get-ConnectionBroker',
     'Import-RDModule'
 )

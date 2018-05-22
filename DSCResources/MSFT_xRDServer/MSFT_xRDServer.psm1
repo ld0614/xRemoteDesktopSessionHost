@@ -39,7 +39,7 @@ function Get-TargetResource
     )
 
     #Must be manually loaded in every Function otherwise unexpected behavior occurs with missing commands
-    Import-Module RemoteDesktop
+    Import-RDModule
 
     $result = $null
 
@@ -124,17 +124,17 @@ Function Add-RDServerFixed
 
     if ($e.count -eq 0) 
     {
-        write-verbose "Add-RDServer completed without errors..."
+        Write-Verbose "Add-RDServer completed without errors..."
         # continue
     }
     elseif ($e[0].FullyQualifiedErrorId -eq 'CommandNotFoundException')
     {
-        write-verbose "Add-RDServer: trapped erroneous errors, that's ok, continuing..."
+        Write-Verbose "Add-RDServer: trapped erroneous errors, that's ok, continuing..."
         # ignore & continue
     }
     else
     {
-        write-error "Add-RDServer threw $($e.count) errors.  First Error: $e[0].FullyQualifiedErrorId"
+        Write-Error "Add-RDServer threw $($e.count) errors.  First Error: $e[0].FullyQualifiedErrorId"
     }
 }
 
@@ -181,11 +181,11 @@ function Set-TargetResource
     )
 
     #Must be manually loaded in every Function otherwise unexpected behavior occurs with missing commands
-    Import-Module RemoteDesktop
+    Import-RDModule
 
     $ConnectionBroker = Get-ConnectionBroker -ConnectionBroker $ConnectionBroker #resolves to localhost / active connection broker
     
-    write-verbose "Adding server '$($Server.ToLower())' as $Role to the deployment on '$($ConnectionBroker.ToLower())'..."
+    Write-Verbose "Adding server '$($Server.ToLower())' as $Role to the deployment on '$($ConnectionBroker.ToLower())'..."
 
     switch ($Role)
     {
@@ -226,51 +226,7 @@ function Set-TargetResource
         }
     }
 
-    <#
-    # validate parameters
-    ValidateCustomModeParameters $Role $GatewayExternalFqdn
-
-    if ($Role -ne 'RDS-Gateway')
-    {
-        $PSBoundParameters.Remove("GatewayExternalFqdn")
-        write-verbose ">> GatewayExternalFqdn:  '$GatewayExternalFqdn'"
-    }
-    
-    if ($Role -ne 'RDS-Connection-Broker')
-    {
-        $PSBoundParameters.Remove("CBConnectionString")
-        $PSBoundParameters.Remove("CBClientAccessName")
-    }
-
-    if ($Role -ne 'RDS-RD-Server')
-    {
-        $PSBoundParameters.Remove("CollectionName")
-    }
-
-    write-verbose "calling Add-RDServer cmdlet..."
-
-    if ($Role -eq 'RDS-Connection-Broker')
-    {
-        $CurrentHAConfig = Get-RDConnectionBrokerHighAvailability -ConnectionBroker $ConnectionBroker
-        if ($null -eq $CurrentHAConfig)
-        {
-            #HA not configured
-            Set-RDConnectionBrokerHighAvailability -ConnectionBroker $ConnectionBroker -DatabaseConnectionString $CBConnectionString -ClientAccessName $CBClientAccessName
-        }
-
-        Add-RDServerFixed -Server $Server -Role $Role -ConnectionBroker $ConnectionBroker
-    }
-    else
-    {
-        Add-RDServerFixed @PSBoundParameters
-    }
-
-    if ($PSBoundParameters.Contains('CollectionName') -and $Role -eq 'RDS-RD-Server')
-    {
-        Add-RDSessionHost -CollectionName $CollectionName -SessionHost $Server -ConnectionBroker $ConnectionBroker
-    }
-    #>
-    write-verbose "Add-RDServer done."
+    Write-Verbose "Add-RDServer done."
 }
 
 
@@ -314,7 +270,6 @@ function Test-TargetResource
         [string] 
         $CollectionName   # only for RDS-RD-Server, optional
     )
-
 
     $target = Get-TargetResource @PSBoundParameters
 

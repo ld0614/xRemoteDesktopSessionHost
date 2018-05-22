@@ -1,6 +1,6 @@
 Import-Module -Name "$PSScriptRoot\..\..\xRemoteDesktopSessionHostCommon.psm1"
 if (!(Test-xRemoteDesktopSessionHostOsRequirement)) { Throw "The minimum OS requirement was not met."}
-Import-Module RemoteDesktop
+Import-RDModule
 
 #######################################################################
 # The Get-TargetResource cmdlet.
@@ -115,15 +115,11 @@ function Set-TargetResource
     { 
         $SessionHosts = @( $localhost ) 
     }
-
     
     $PSBoundParameters.Remove("SessionHosts")
     Write-Verbose "calling New-RdSessionCollection cmdlet..."
     New-RDSessionCollection @PSBoundParameters -ConnectionBroker $ConnectionBroker -SessionHost $SessionHosts
-
-    #    Add-RDSessionHost @PSBoundParameters  # that's if the Session host is not in the collection
 }
-
 
 #######################################################################
 # The Test-TargetResource cmdlet.
@@ -152,22 +148,22 @@ function Test-TargetResource
         $ConnectionBroker
     )
 
-    write-verbose "Checking for existence of RD Session collection named '$CollectionName'..."
+    Write-Verbose "Checking for existence of RD Session collection named '$CollectionName'..."
     
     $collection = Get-TargetResource @PSBoundParameters
     
     if ($collection)
     {
-        write-verbose "verifying RD Session collection name and parameters..."
+        Write-Verbose "verifying RD Session collection name and parameters..."
         $result =  ($collection.CollectionName -ieq $CollectionName)
     }
     else
     {
-        write-verbose "RD Session collection named '$CollectionName' not found."
+        Write-Verbose "RD Session collection named '$CollectionName' not found."
         $result = $false
     }
 
-    write-verbose "Test-TargetResource returning:  $result"
+    Write-Verbose "Test-TargetResource returning: $result"
     return $result
 }
 
